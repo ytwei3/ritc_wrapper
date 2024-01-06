@@ -3,12 +3,12 @@ use reqwest::Error;
 use crate::client::handle_respone;
 use crate::client::RIT;
 
-enum OrderType {
+pub enum OrderType {
     MARKET,
     LIMIT(f64),
 }
 
-trait Order {
+pub trait Order {
     fn post_order(
         &self,
         ticker: &str,

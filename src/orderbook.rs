@@ -9,7 +9,7 @@ enum Security {
     TICKER(String),
 }
 
-trait OrderBook {
+pub trait OrderBook {
     // fn get_order_book(&self, ticker: &str) -> Result<JSON, reqwest::Error>;
     fn get_sercurity_info(&self, security: Security) -> Result<JSON, reqwest::Error>;
 }
