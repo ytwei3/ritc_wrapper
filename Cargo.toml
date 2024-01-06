@@ -8,3 +8,7 @@ edition = "2021"
 [dependencies]
 serde_json = {}
 reqwest = {features = ["blocking","json"] }
+
+[[example]]
+name = "algo1"
+path = "examples/algo1.rs"
