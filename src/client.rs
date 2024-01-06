@@ -90,6 +90,6 @@ fn handle_respone(resp: Response) -> Result<JSON, Error> {
     match resp.status() {
         StatusCode::OK => Ok(resp.json::<JSON>()?),
         StatusCode::UNAUTHORIZED => panic!("Unauthorized: check your API key"),
-        _ => panic!("Failed to get tick"),
+        _ => panic!("Failed to handle response"),
     }
 }

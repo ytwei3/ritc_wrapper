@@ -1,6 +1,6 @@
 ///an exmaple for mispricing arbitrage bewteen main and alternative market
 use reqwest::Error;
-use ritc::client::{Action::*, OrderType::*, Security::*};
+use ritc::{Action::*, OrderType::*, Security::*};
 use std::thread::sleep;
 use std::time::Duration;
 
