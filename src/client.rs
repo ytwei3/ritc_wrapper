@@ -13,7 +13,7 @@ pub enum OrderType {
     LIMIT(f64),
 }
 
-enum Security {
+pub enum Security {
     ALL,
     TICKER(String),
 }
@@ -81,7 +81,18 @@ impl RIT {
 
     /// Orderbook
     pub fn get_sercurity_info(&self, security: Security) -> Result<JSON, Error> {
-        todo!()
+        let resp = match security {
+            Security::ALL => self
+                .client
+                .get("http://localhost:9999/v1/securities")
+                .send()?,
+            Security::TICKER(ticker) => self
+                .client
+                .get(&format!("http://localhost:9999/v1/securities/{}", ticker))
+                .send()?,
+        };
+
+        handle_respone(resp)
     }
 }
 
