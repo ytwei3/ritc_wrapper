@@ -1,3 +1,5 @@
+use std::fmt::Display;
+
 use reqwest::blocking::{Client, Response};
 use reqwest::Error;
 use reqwest::StatusCode;
@@ -25,7 +27,7 @@ impl RIT {
             .build()
             .unwrap();
 
-        RIT { client: client }
+        RIT { client }
     }
 
     /// Case
@@ -42,27 +44,18 @@ impl RIT {
     }
 
     /// Order
-    pub fn post_order(
+    pub fn post_order<T: Display>(
         &self,
-        ticker: &str,
+        ticker: T,
         order_type: OrderType,
         quantity: i32,
         action: Action,
     ) -> Result<(), Error> {
-        let para = [
-            ("ticker", ticker),
-            ("type", order_type.as_str()),
-            ("quantity", &quantity.to_string()),
-            ("action", action.as_str()),
-            ("price", &order_type.price()),
-        ];
-
-        let resp = self
-            .client
-            .post("http://localhost:9999/v1/orders")
-            .query(&para)
-            .body("")
-            .send()?;
+        let url = format!(
+            "http://localhost:9999/v1/orders?ticker={}&type={}&quantity={}&action={}",
+            ticker, order_type, quantity, action
+        );
+        let resp = self.client.post(&url).body("").send()?;
 
         handle_respone(resp)?;
         Ok(())
@@ -70,26 +63,22 @@ impl RIT {
 
     /// Orderbook
     pub fn get_sercurity_info(&self, security: Security) -> Result<JSON, Error> {
-        let resp = match security {
-            Security::ALL => self
-                .client
-                .get("http://localhost:9999/v1/securities")
-                .send()?,
-            Security::TICKER(ticker) => self
-                .client
-                .get("http://localhost:9999/v1/securities")
-                .query(&[("ticker", ticker)])
-                .send()?,
-        };
+        let url = format!("http://localhost:9999/v1/securities{}", security);
+        let resp = self.client.get(url).send()?;
 
         handle_respone(resp)
     }
+}
+
+pub fn sleep(secs: f64) {
+    std::thread::sleep(std::time::Duration::from_secs_f64(secs))
 }
 
 fn handle_respone(resp: Response) -> Result<JSON, Error> {
     match resp.status() {
         StatusCode::OK => Ok(resp.json::<JSON>()?),
         StatusCode::UNAUTHORIZED => panic!("Unauthorized: check your API key"),
-        _ => panic!("Failed to get tick"),
+        StatusCode::BAD_REQUEST => panic!("TODO"),
+        _ => panic!("Failed to handle request"),
     }
 }

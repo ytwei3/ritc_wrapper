@@ -1,10 +1,20 @@
-pub mod client;
-
 pub use client::RIT;
+use std::fmt::{Display, Formatter, Result};
+
+pub mod client;
 
 pub enum Security {
     ALL,
     TICKER(String),
+}
+
+impl Display for Security {
+    fn fmt(&self, f: &mut Formatter<'_>) -> Result {
+        match self {
+            Security::ALL => write!(f, ""),
+            Security::TICKER(t) => write!(f, "?ticker={}", t),
+        }
+    }
 }
 
 pub enum OrderType {
@@ -12,18 +22,11 @@ pub enum OrderType {
     LIMIT(f64),
 }
 
-impl OrderType {
-    fn as_str(&self) -> &'static str {
-        match self {
-            Self::MARKET => "MARKET",
-            Self::LIMIT(_) => "LIMIT",
-        }
-    }
-
-    fn price(&self) -> String {
-        match self {
-            Self::MARKET => "".to_string(),
-            Self::LIMIT(price) => price.to_string(),
+impl Display for OrderType {
+    fn fmt(&self, f: &mut Formatter<'_>) -> Result {
+        match *self {
+            OrderType::MARKET => write!(f, "MARKET"),
+            OrderType::LIMIT(price) => write!(f, "LIMIT&price={}", price),
         }
     }
 }
@@ -33,11 +36,11 @@ pub enum Action {
     SELL,
 }
 
-impl Action {
-    fn as_str(&self) -> &'static str {
+impl Display for Action {
+    fn fmt(&self, f: &mut Formatter<'_>) -> Result {
         match self {
-            Self::BUY => "BUY",
-            Self::SELL => "SELL",
+            &Action::BUY => write!(f, "BUY"),
+            &Action::SELL => write!(f, "SELL"),
         }
     }
 }
