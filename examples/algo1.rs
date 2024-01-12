@@ -8,6 +8,7 @@ fn main() -> Result<(), Error> {
     while 0 < tick && tick < 300 {
         let securities = rit.get_sercurity_info(Security::ALL)?;
 
+        // TODO: ues sec.get(0) here.
         let crzy_m_bid = securities[0]["bid"].as_f64().unwrap();
         let crzy_m_ask = securities[0]["ask"].as_f64().unwrap();
         let crzy_a_bid = securities[1]["bid"].as_f64().unwrap();
