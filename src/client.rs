@@ -1,12 +1,12 @@
-use std::fmt::Display;
-
 use reqwest::blocking::{Client, Response};
-use reqwest::Error;
 use reqwest::StatusCode;
 use serde_json::Value;
 
+use std::fmt::Display;
+
 use crate::{Action, OrderType, Security};
 
+pub type Error = Box<dyn std::error::Error>;
 pub type JSON = Value;
 
 pub struct RIT {
@@ -76,8 +76,15 @@ pub fn sleep(secs: f64) {
 
 fn handle_respone(resp: Response) -> Result<JSON, Error> {
     match resp.status() {
-        StatusCode::OK => Ok(resp.json::<JSON>()?),
-        StatusCode::UNAUTHORIZED => panic!("Unauthorized: check your API key"),
-        _ => panic!("Failed to handle response"),
+        StatusCode::OK => {
+            if let Some(wait_until) = resp.headers().get("X-Wait-Until") {
+                sleep(wait_until.to_str()?.parse::<f64>()?);
+            }
+            Ok(resp.json::<JSON>()?)
+        }
+        _ => {
+            let resp = resp.json::<JSON>()?;
+            panic!("fail to handle response: {}", resp["message"])
+        }
     }
 }

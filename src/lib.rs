@@ -1,4 +1,4 @@
-pub use client::RIT;
+pub use client::*;
 use std::fmt::{Display, Formatter, Result};
 
 pub mod client;
