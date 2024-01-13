@@ -12,3 +12,7 @@ reqwest = {features = ["blocking","json"] }
 [[example]]
 name = "algo1"
 path = "examples/algo1.rs"
+
+[[example]]
+name = "mm"
+path = "examples/mm.rs"

@@ -84,7 +84,12 @@ fn handle_respone(resp: Response) -> Result<JSON, Error> {
         }
         _ => {
             let resp = resp.json::<JSON>()?;
-            panic!("fail to handle response: {}", resp["message"])
+            panic!(
+                "++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n
+                fail to handle response:\n{}\n
+                ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++",
+                resp["message"]
+            )
         }
     }
 }
