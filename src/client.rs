@@ -76,14 +76,24 @@ pub fn sleep(secs: f64) {
 
 fn handle_respone(resp: Response, retry: Option<(&RIT, &str)>) -> Result<JSON, Error> {
     match resp.status() {
-        StatusCode::OK => Ok(resp.json::<JSON>()?),
+        StatusCode::OK => match retry {
+            Some(_) => Ok(JSON::Null),
+            None => Ok(resp.json::<JSON>()?),
+        },
         StatusCode::TOO_MANY_REQUESTS => {
-            if let Some(wait_until) = resp.headers().get("X-Wait-Until") {
-                sleep(wait_until.to_str()?.parse::<f64>()?);
-                let resp = retry.unwrap().0.client.get(retry.unwrap().1).send()?;
-                handle_respone(resp, retry)?;
-            }
-            Ok(resp.json::<JSON>()?)
+            let json = resp.json::<JSON>()?;
+            let wait = json.get("wait").unwrap().as_f64().unwrap();
+
+            sleep(wait);
+            retry
+                .unwrap()
+                .0
+                .client
+                .post(retry.unwrap().1)
+                .body("")
+                .send()?;
+
+            Ok(JSON::Null)
         }
         _ => {
             let resp = resp.json::<JSON>()?;
