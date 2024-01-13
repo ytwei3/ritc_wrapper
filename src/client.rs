@@ -33,12 +33,12 @@ impl RIT {
     /// Case
     pub fn get_case(&self) -> Result<JSON, Error> {
         let resp = self.client.get("http://localhost:9999/v1/case").send()?;
-        handle_respone(resp)
+        handle_respone(resp, None)
     }
 
     pub fn get_tick(&self) -> Result<i64, Error> {
         let resp = self.client.get("http://localhost:9999/v1/case").send()?;
-        let tick = handle_respone(resp)?["tick"].as_i64().unwrap();
+        let tick = handle_respone(resp, None)?["tick"].as_i64().unwrap();
 
         Ok(tick)
     }
@@ -57,7 +57,7 @@ impl RIT {
         );
         let resp = self.client.post(&url).body("").send()?;
 
-        handle_respone(resp)?;
+        handle_respone(resp, Some((self, &url)))?;
         Ok(())
     }
 
@@ -66,7 +66,7 @@ impl RIT {
         let url = format!("http://localhost:9999/v1/securities{}", security);
         let resp = self.client.get(url).send()?;
 
-        handle_respone(resp)
+        handle_respone(resp, None)
     }
 }
 
@@ -74,17 +74,25 @@ pub fn sleep(secs: f64) {
     std::thread::sleep(std::time::Duration::from_secs_f64(secs))
 }
 
-fn handle_respone(resp: Response) -> Result<JSON, Error> {
+fn handle_respone(resp: Response, retry: Option<(&RIT, &str)>) -> Result<JSON, Error> {
     match resp.status() {
-        StatusCode::OK => {
+        StatusCode::OK => Ok(resp.json::<JSON>()?),
+        StatusCode::TOO_MANY_REQUESTS => {
             if let Some(wait_until) = resp.headers().get("X-Wait-Until") {
                 sleep(wait_until.to_str()?.parse::<f64>()?);
+                let resp = retry.unwrap().0.client.get(retry.unwrap().1).send()?;
+                handle_respone(resp, retry)?;
             }
             Ok(resp.json::<JSON>()?)
         }
         _ => {
             let resp = resp.json::<JSON>()?;
-            panic!("fail to handle response: {}", resp["message"])
+            panic!(
+                "++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n
+                fail to handle response:\n{}\n
+                ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++",
+                resp["message"]
+            )
         }
     }
 }
